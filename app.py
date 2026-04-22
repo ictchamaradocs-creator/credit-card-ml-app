@@ -31,8 +31,8 @@ app_ui = ui.page_fluid(
     ui.output_plot("approval_chart"),
     ui.output_plot("age_chart"),
     ui.output_plot("income_chart"),
+    ui.output_plot("age_boxplot"),   # ✅ added
 
-    # ✅ ADDED SECTION (no changes to existing UI)
     ui.hr(),
     ui.h4("📊 Model Performance"),
     ui.output_text("accuracy"),
@@ -124,8 +124,19 @@ def server(input, output, session):
         plt.ylabel("Frequency")
         return plt.gcf()
 
-    # ================= ADDED PART =================
+    # 📊 Age Boxplot (NEW)
+    @output
+    @render.plot
+    def age_boxplot():
+        df = pd.read_csv("cleaned_data.csv", low_memory=False)
 
+        plt.figure()
+        plt.boxplot(df["AGE"])
+        plt.title("Age Boxplot (Outliers)")
+        plt.ylabel("Age")
+        return plt.gcf()
+
+    # 📊 Accuracy
     @output
     @render.text
     def accuracy():
@@ -146,10 +157,10 @@ def server(input, output, session):
             acc = accuracy_score(y_test, preds)
 
             return f"Accuracy: {acc:.2f}"
-
         except Exception as e:
             return f"Error: {str(e)}"
 
+    # 📊 Confusion Matrix
     @output
     @render.text
     def confusion():
@@ -170,7 +181,6 @@ def server(input, output, session):
             cm = confusion_matrix(y_test, preds)
 
             return f"Confusion Matrix:\n{cm}"
-
         except:
             return ""
 
