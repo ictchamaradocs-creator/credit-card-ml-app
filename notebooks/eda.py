@@ -11,3 +11,12 @@ plt.xlabel("Target")
 plt.ylabel("Count")
 
 plt.show()
+plt.figure(figsize=(12,8))
+
+numeric_df = df.select_dtypes(include=['int64', 'float64'])
+
+sns.heatmap(numeric_df.corr(), cmap='coolwarm')
+
+plt.title("Correlation Heatmap")
+
+plt.show()
