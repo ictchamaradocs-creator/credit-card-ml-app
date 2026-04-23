@@ -1,249 +1,98 @@
-from shiny import App, ui, render
+import tkinter as tk
+from tkinter import ttk
 import pickle
-import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
 
-from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.model_selection import train_test_split
-
-# ================= LOAD MODEL =================
+# Load trained model
 model = pickle.load(open("models/model.pkl", "rb"))
 
-# ================= LOAD DATASET =================
-df = pd.read_csv("data/cleaned_data.csv", low_memory=False)
+# Create main window
+root = tk.Tk()
+root.title("Credit Card Fraud Prediction")
+root.geometry("450x650")
 
-# Remove unnecessary column
-df = df.drop(columns=["Unnamed: 0"], errors="ignore")
-
-# ================= UI =================
-app_ui = ui.page_fluid(
-
-    ui.h2("💳 Credit Card Approval Prediction"),
-    ui.hr(),
-    ui.h3("Applicant Information"),
-    ui.input_numeric("age", "Age", 30),
-    ui.input_numeric("income", "Income", 50000),
-    ui.input_numeric("family_size", "Family Size", 2),
-
-    ui.input_select("gender", "Gender", ["M", "F"]),
-    ui.input_select("car", "Own Car", ["Y", "N"]),
-    ui.input_select("house", "Own House", ["Y", "N"]),
-    ui.input_action_button("predict_btn", "Predict Approval"),
-    ui.hr(),
-
-    ui.br(),
-
-    ui.h4("Prediction Result"),
-    ui.output_text("result"),
-    ui.output_text("confidence"),
-
-    ui.hr(),
-
-    ui.h4("📊 Dataset Insights"),
-
-    ui.output_plot("approval_chart"),
-    ui.output_plot("age_chart"),
-    ui.output_plot("income_chart"),
-    ui.output_plot("age_boxplot"),
-
-    ui.hr(),
-
-    ui.h4("📊 Model Performance"),
-
-    ui.output_text("accuracy"),
-    ui.output_text("confusion")
-    
+# Title
+title = tk.Label(
+    root,
+    text="Credit Card Fraud Prediction System",
+    font=("Arial", 16, "bold")
 )
+title.pack(pady=10)
 
-# ================= SERVER =================
-def server(input, output, session):
+# Gender Dropdown
+tk.Label(root, text="Gender").pack()
+gender = ttk.Combobox(root, values=[0, 1])
+gender.pack()
 
-    # ================= PREPARE INPUT DATA =================
-    def prepare_data():
+# Car Dropdown
+tk.Label(root, text="Car Ownership").pack()
+car = ttk.Combobox(root, values=[0, 1])
+car.pack()
 
-        sample = df.drop("TARGET", axis=1).iloc[0:1].copy()
+# Reality Dropdown
+tk.Label(root, text="Property Ownership").pack()
+reality = ttk.Combobox(root, values=[0, 1])
+reality.pack()
 
-        # User inputs
-        sample["AGE"] = input.age()
-        sample["INCOME"] = input.income()
-        sample["FAMILY SIZE"] = input.family_size()
+# Children Entry
+tk.Label(root, text="Number of Children").pack()
+children = tk.Entry(root)
+children.pack()
 
-        sample["GENDER"] = input.gender()
-        sample["CAR"] = input.car()
-        sample["REALITY"] = input.house()
+# Income Entry
+tk.Label(root, text="Income").pack()
+income = tk.Entry(root)
+income.pack()
 
-        # Encode text columns
-        for col in sample.columns:
-            if sample[col].dtype == "object":
-                sample[col] = sample[col].astype("category").cat.codes
+# Age Entry
+tk.Label(root, text="Age").pack()
+age = tk.Entry(root)
+age.pack()
 
-        return sample
+# Years Employed Entry
+tk.Label(root, text="Years Employed").pack()
+years = tk.Entry(root)
+years.pack()
 
-    # ================= PREDICTION RESULT =================
-    @output
-    @render.text
-    def result():
-        try:
-            sample = prepare_data()
-
-            prediction = model.predict(sample)[0]
-
-            if prediction == 1:
-                return "✅ Approved"
-            else:
-                return "❌ Not Approved"
-
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    # ================= CONFIDENCE SCORE =================
-    @output
-    @render.text
-    def confidence():
-
-        try:
-            sample = prepare_data()
-
-            prob = model.predict_proba(sample)[0][1]
-
-            return f"Confidence Score: {prob:.2f}"
-
-        except:
-            return ""
-
-    # ================= APPROVAL DISTRIBUTION =================
-    @output
-    @render.plot
-    def approval_chart():
-
-        counts = df["TARGET"].value_counts()
-
-        labels = ["Not Approved", "Approved"]
-
+# Prediction Function
+def predict():
+    try:
         values = [
-            counts.get(0, 0),
-            counts.get(1, 0)
+            float(gender.get()),
+            float(car.get()),
+            float(reality.get()),
+            float(children.get()),
+            float(income.get()),
+            float(age.get()),
+            float(years.get())
         ]
 
-        plt.figure(figsize=(5,4))
+        prediction = model.predict([values])
 
-        plt.bar(labels, values)
+        result_label.config(
+            text=f"Prediction Result: {prediction[0]}"
+        )
 
-        plt.title("Approval Distribution")
+    except:
+        result_label.config(text="Invalid Input")
 
-        plt.xlabel("Status")
-        plt.ylabel("Count")
+# Predict Button
+predict_btn = tk.Button(
+    root,
+    text="Predict",
+    command=predict,
+    bg="blue",
+    fg="white"
+)
+predict_btn.pack(pady=20)
 
-        return plt.gcf()
+# Result Label
+result_label = tk.Label(
+    root,
+    text="",
+    font=("Arial", 12, "bold")
+)
+result_label.pack()
 
-    # ================= AGE DISTRIBUTION =================
-    @output
-    @render.plot
-    def age_chart():
-
-        plt.figure(figsize=(5,4))
-
-        plt.hist(df["AGE"], bins=20)
-
-        plt.title("Age Distribution")
-
-        plt.xlabel("Age")
-        plt.ylabel("Frequency")
-
-        return plt.gcf()
-
-    # ================= INCOME DISTRIBUTION =================
-    @output
-    @render.plot
-    def income_chart():
-
-        plt.figure(figsize=(5,4))
-
-        plt.hist(df["INCOME"], bins=20)
-
-        plt.title("Income Distribution")
-
-        plt.xlabel("Income")
-        plt.ylabel("Frequency")
-
-        return plt.gcf()
-
-    # ================= AGE BOXPLOT =================
-    @output
-    @render.plot
-    def age_boxplot():
-
-        plt.figure(figsize=(5,4))
-
-        plt.boxplot(df["AGE"])
-
-        plt.title("Age Boxplot")
-
-        plt.ylabel("Age")
-
-        return plt.gcf()
-
-    # ================= MODEL ACCURACY =================
-    @output
-    @render.text
-    def accuracy():
-
-        try:
-
-            X = df.drop("TARGET", axis=1)
-            y = df["TARGET"]
-
-            # Encode text columns
-            for col in X.columns:
-                if X[col].dtype == "object":
-                    X[col] = X[col].astype("category").cat.codes
-
-            X_train, X_test, y_train, y_test = train_test_split(
-                X,
-                y,
-                test_size=0.2,
-                random_state=42
-            )
-
-            preds = model.predict(X_test)
-
-            acc = accuracy_score(y_test, preds)
-
-            return f"Model Accuracy: {acc:.2f}"
-
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    # ================= CONFUSION MATRIX =================
-    @output
-    @render.text
-    def confusion():
-
-        try:
-
-            X = df.drop("TARGET", axis=1)
-            y = df["TARGET"]
-
-            # Encode text columns
-            for col in X.columns:
-                if X[col].dtype == "object":
-                    X[col] = X[col].astype("category").cat.codes
-
-            X_train, X_test, y_train, y_test = train_test_split(
-                X,
-                y,
-                test_size=0.2,
-                random_state=42
-            )
-
-            preds = model.predict(X_test)
-
-            cm = confusion_matrix(y_test, preds)
-
-            return f"Confusion Matrix:\n{cm}"
-
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-# ================= APP =================
-app = App(app_ui, server)
+# Run Application
+root.mainloop()

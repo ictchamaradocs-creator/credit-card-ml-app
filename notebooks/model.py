@@ -23,7 +23,8 @@ from sklearn.metrics import (
 df = pd.read_csv("data/cleaned_data.csv")
 
 # Remove unnecessary column
-df = df.drop("Unnamed: 0", axis=1)
+
+df = df.drop(columns=["Unnamed: 0", "ID", "User"])
 
 # =========================
 # TARGET & FEATURES
