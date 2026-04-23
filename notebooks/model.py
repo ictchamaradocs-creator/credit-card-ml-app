@@ -22,25 +22,35 @@ from sklearn.metrics import (
 # =========================
 df = pd.read_csv("data/cleaned_data.csv")
 
-# Remove unnecessary column
-
+# Remove unnecessary columns
 df = df.drop(columns=["Unnamed: 0", "ID", "User"])
 
 # =========================
-# TARGET & FEATURES
+# SELECT FEATURES
 # =========================
-y = df["TARGET"]
+X = df[[
+    "GENDER",
+    "CAR",
+    "REALITY",
+    "NO_OF_CHILD",
+    "INCOME",
+    "AGE",
+    "YEARS_EMPLOYED"
+]]
 
-X = df.drop("TARGET", axis=1)
+# Target variable
+y = df["TARGET"]
 
 # =========================
 # ENCODE CATEGORICAL DATA
 # =========================
-le = LabelEncoder()
+le_gender = LabelEncoder()
+le_car = LabelEncoder()
+le_reality = LabelEncoder()
 
-for col in X.columns:
-    if X[col].dtype == 'object':
-        X[col] = le.fit_transform(X[col].astype(str))
+X["GENDER"] = le_gender.fit_transform(X["GENDER"])
+X["CAR"] = le_car.fit_transform(X["CAR"])
+X["REALITY"] = le_reality.fit_transform(X["REALITY"])
 
 # =========================
 # TRAIN TEST SPLIT
