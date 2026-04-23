@@ -20,3 +20,10 @@ sns.heatmap(numeric_df.corr(), cmap='coolwarm')
 plt.title("Correlation Heatmap")
 
 plt.show()
+plt.figure(figsize=(8,5))
+
+sns.boxplot(x=df['INCOME'])
+
+plt.title("Income Outlier Detection")
+
+plt.show()
