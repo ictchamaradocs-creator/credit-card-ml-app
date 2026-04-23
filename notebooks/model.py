@@ -1,170 +1,103 @@
-import pandas as pd
+import tkinter as tk
+from tkinter import ttk
 import pickle
-import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+# Load trained model
+model = pickle.load(open("models/model.pkl", "rb"))
 
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    confusion_matrix,
-    classification_report
+# Create main window
+root = tk.Tk()
+root.title("Credit Card Fraud Prediction")
+root.geometry("450x650")
+
+# Title
+title = tk.Label(
+    root,
+    text="Credit Card Fraud Prediction System",
+    font=("Arial", 16, "bold")
 )
+title.pack(pady=10)
 
-# =========================
-# LOAD DATASET
-# =========================
-df = pd.read_csv("data/cleaned_data.csv")
+# Gender Dropdown
+tk.Label(root, text="Gender").pack()
+gender = ttk.Combobox(root, values=[0, 1])
+gender.pack()
 
-# Remove unnecessary columns
-df = df.drop(columns=["Unnamed: 0", "ID", "User"])
+# Car Dropdown
+tk.Label(root, text="Car Ownership").pack()
+car = ttk.Combobox(root, values=[0, 1])
+car.pack()
 
-# =========================
-# SELECT FEATURES
-# =========================
-X = df[[
-    "GENDER",
-    "CAR",
-    "REALITY",
-    "NO_OF_CHILD",
-    "INCOME",
-    "AGE",
-    "YEARS_EMPLOYED"
-]]
+# Property Dropdown
+tk.Label(root, text="Property Ownership").pack()
+reality = ttk.Combobox(root, values=[0, 1])
+reality.pack()
 
-# Target variable
-y = df["TARGET"]
+# Children Entry
+tk.Label(root, text="Number of Children").pack()
+children = tk.Entry(root)
+children.pack()
 
-# =========================
-# ENCODE CATEGORICAL DATA
-# =========================
-le_gender = LabelEncoder()
-le_car = LabelEncoder()
-le_reality = LabelEncoder()
+# Income Entry
+tk.Label(root, text="Income").pack()
+income = tk.Entry(root)
+income.pack()
 
-X["GENDER"] = le_gender.fit_transform(X["GENDER"])
-X["CAR"] = le_car.fit_transform(X["CAR"])
-X["REALITY"] = le_reality.fit_transform(X["REALITY"])
+# Age Entry
+tk.Label(root, text="Age").pack()
+age = tk.Entry(root)
+age.pack()
 
-# =========================
-# TRAIN TEST SPLIT
-# =========================
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42
+# Years Employed Entry
+tk.Label(root, text="Years Employed").pack()
+years = tk.Entry(root)
+years.pack()
+
+# Prediction Function
+def predict():
+    try:
+        values = [
+            float(gender.get()),
+            float(car.get()),
+            float(reality.get()),
+            float(children.get()),
+            float(income.get()),
+            float(age.get()),
+            float(years.get())
+        ]
+
+        prediction = model.predict([values])
+
+        if prediction[0] == 1:
+            result = "Approved"
+        else:
+            result = "Not Approved"
+
+        result_label.config(
+            text=f"Prediction Result: {result}"
+        )
+
+    except:
+        result_label.config(text="Invalid Input")
+
+# Predict Button
+predict_btn = tk.Button(
+    root,
+    text="Predict",
+    command=predict,
+    bg="blue",
+    fg="white"
 )
+predict_btn.pack(pady=20)
 
-print("Training Data Shape:", X_train.shape)
-print("Testing Data Shape:", X_test.shape)
+# Result Label
+result_label = tk.Label(
+    root,
+    text="",
+    font=("Arial", 14, "bold")
+)
+result_label.pack()
 
-# =========================
-# FEATURE SCALING
-# =========================
-scaler = StandardScaler()
-
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-# =====================================================
-# KNN MODEL
-# =====================================================
-print("\n========== KNN MODEL ==========")
-
-knn_model = KNeighborsClassifier(n_neighbors=5)
-
-knn_model.fit(X_train_scaled, y_train)
-
-knn_predictions = knn_model.predict(X_test_scaled)
-
-# Metrics
-knn_accuracy = accuracy_score(y_test, knn_predictions)
-knn_precision = precision_score(y_test, knn_predictions)
-knn_recall = recall_score(y_test, knn_predictions)
-knn_f1 = f1_score(y_test, knn_predictions)
-
-print("KNN Accuracy:", knn_accuracy)
-print("KNN Precision:", knn_precision)
-print("KNN Recall:", knn_recall)
-print("KNN F1 Score:", knn_f1)
-
-# Classification Report
-print("\nKNN Classification Report")
-print(classification_report(y_test, knn_predictions))
-
-# Confusion Matrix
-knn_cm = confusion_matrix(y_test, knn_predictions)
-
-plt.figure(figsize=(5,4))
-
-sns.heatmap(knn_cm, annot=True, fmt='d', cmap='Blues')
-
-plt.title("KNN Confusion Matrix")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-
-plt.show()
-
-# =====================================================
-# NAIVE BAYES MODEL
-# =====================================================
-print("\n========== NAIVE BAYES MODEL ==========")
-
-nb_model = GaussianNB()
-
-nb_model.fit(X_train_scaled, y_train)
-
-nb_predictions = nb_model.predict(X_test_scaled)
-
-# Metrics
-nb_accuracy = accuracy_score(y_test, nb_predictions)
-nb_precision = precision_score(y_test, nb_predictions)
-nb_recall = recall_score(y_test, nb_predictions)
-nb_f1 = f1_score(y_test, nb_predictions)
-
-print("Naive Bayes Accuracy:", nb_accuracy)
-print("Naive Bayes Precision:", nb_precision)
-print("Naive Bayes Recall:", nb_recall)
-print("Naive Bayes F1 Score:", nb_f1)
-
-# Classification Report
-print("\nNaive Bayes Classification Report")
-print(classification_report(y_test, nb_predictions))
-
-# Confusion Matrix
-nb_cm = confusion_matrix(y_test, nb_predictions)
-
-plt.figure(figsize=(5,4))
-
-sns.heatmap(nb_cm, annot=True, fmt='d', cmap='Greens')
-
-plt.title("Naive Bayes Confusion Matrix")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-
-plt.show()
-
-# =====================================================
-# SELECT BEST MODEL
-# =====================================================
-if knn_f1 >= nb_f1:
-    final_model = knn_model
-    print("\nKNN selected as final model")
-else:
-    final_model = nb_model
-    print("\nNaive Bayes selected as final model")
-
-# =====================================================
-# SAVE MODEL
-# =====================================================
-pickle.dump(final_model, open("models/model.pkl", "wb"))
-
-print("\nModel trained successfully!")
-print("model.pkl saved inside models folder")
+# Run Application
+root.mainloop()
