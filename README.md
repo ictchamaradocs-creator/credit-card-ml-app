@@ -1,39 +1,47 @@
-# Credit Card Approval Prediction System
+# Credit Card Fraud Prediction App
 
 ## Overview
+This project is a Machine Learning based Credit Card Fraud Prediction System developed using Python. The system predicts whether a credit card application is risky or not using classification algorithms.
 
-This project is a machine learning application that predicts whether a credit card application will be approved or not. It is built using Python and Shiny.
+---
 
 ## Features
+- Data preprocessing and cleaning
+- Exploratory Data Analysis (EDA)
+- Machine Learning model training
+- Fraud prediction GUI using Tkinter
+- GitHub version control integration
 
-* User input: Age, Income, Family Size, Gender, Car Ownership, House Ownership
-* Output: Approval result and confidence score
-* Basic data visualizations (age, income, approval distribution)
+---
 
-## Technologies
+## Technologies Used
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- Tkinter
+- Matplotlib
+- Seaborn
 
-* Python
-* Pandas, Scikit-learn
-* Matplotlib
-* Shiny (Python)
+---
 
-## How to Run
+## Machine Learning Models
+- K-Nearest Neighbors (KNN)
+- Naïve Bayes
+
+---
+
+## Project Structure
 
 ```bash
-git clone https://github.com/ictchamaradocs-creator/credit-card-ml-app.git
-cd credit-card-ml-app
-pip install -r requirements.txt
-python -m shiny run app.py
-```
-
-Open in browser: http://127.0.0.1:8000
-
-## Notes
-
-* The model uses multiple features, but only key inputs are exposed in the UI
-* High accuracy may indicate overfitting
-* Data quality affects prediction results
-
-## Author
-
-Inosha Wijesinghe
+Credit-Card-Fraud-Prediction/
+│
+├── app.py
+├── model.py
+├── requirements.txt
+├── README.md
+├── models/
+│   └── model.pkl
+├── dataset/
+│   ├── Credit_Card_Dataset_2025_Sept_1.csv
+│   └── Credit_Card_Dataset_2025_Sept_2.csv
